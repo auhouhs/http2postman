@@ -1,0 +1,13 @@
+@base = https://api.example.com
+@token=abc123
+
+### With variables
+GET {{base}}/users
+Authorization: Bearer {{token}}
+
+### Body with at-line
+POST {{base}}/echo
+
+line one
+@x = y
+line three

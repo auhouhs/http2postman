@@ -1,0 +1,10 @@
+### Get all users
+GET http://api.example.com/users
+
+### Create user
+# @name createUser
+POST http://api.example.com/users
+
+### Overridden name
+# @name overrideMe
+GET http://api.example.com/ping

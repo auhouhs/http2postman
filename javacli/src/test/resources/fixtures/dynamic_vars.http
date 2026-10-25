@@ -1,0 +1,8 @@
+### Dynamic variables
+POST http://api.example.com/dynamic
+Content-Type: application/json
+
+{"id": "$uuid", "when": "$timestamp", "n": "$randomInt", "guid": "$random.uuid", "n2": "$random.integer(1,100)"}
+
+### Unmappable and dotenv
+GET http://api.example.com/x?k={{$dotenv API_KEY}}&other=$customToken

@@ -1,0 +1,25 @@
+### Explicit JSON
+POST http://api.example.com/json
+Content-Type: application/json
+
+{"a": 1}
+
+### Sniffed JSON
+POST http://api.example.com/sniff-json
+
+{"a": 1}
+
+### Sniffed XML
+POST http://api.example.com/sniff-xml
+
+<note>hello</note>
+
+### Sniffed form
+POST http://api.example.com/sniff-form
+
+a=1&b=2
+
+### Sniffed text
+POST http://api.example.com/sniff-text
+
+just some plain text

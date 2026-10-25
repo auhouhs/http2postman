@@ -1,0 +1,7 @@
+### Random vars bare
+POST http://api.example.com/random
+
+{"email": "$random.email", "word": "$random.word", "n": "$randomInt"}
+
+### Random vars braced
+GET http://api.example.com/random?e={{$random.email}}&ip=$random.ipv6&multi=$random.address.fullAddress

@@ -1,0 +1,17 @@
+### Multipart upload
+POST http://api.example.com/upload
+Content-Type: multipart/form-data; boundary=abc123
+
+--abc123
+Content-Disposition: form-data; name="title"
+
+Multi-line
+part value
+--abc123
+Content-Disposition: form-data; name="attachment"; filename="empty.txt"
+
+--abc123
+Content-Disposition: form-data; name="note"
+
+short
+--abc123--

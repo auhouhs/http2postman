@@ -1,0 +1,19 @@
+### Scripted request
+# Multi-line pre-request script and two response script blocks with a comment between.
+< {%
+    request.variables.set("traceId", response.body.traceId);
+    client.global.set("token", "abc");
+%}
+POST http://api.example.com/scripted
+Content-Type: application/json
+X-Trace: {{$dotenv TRACE}}
+
+{"a": 1}
+> {%
+    client.test("status ok", function () {
+        client.assert(response.status === 200, "Expected 200");
+        client.log(response.time);
+    });
+%}
+# comment between script blocks
+> {% client.log("second block"); %}

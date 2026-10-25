@@ -1,0 +1,5 @@
+### Dotenv request
+POST {{$dotenv BASE}}/env
+X-Token: {{$dotenv TOKEN}}
+
+message: {{$dotenv MESSAGE}}

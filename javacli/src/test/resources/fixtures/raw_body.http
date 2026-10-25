@@ -1,0 +1,7 @@
+### Raw multi-line
+POST http://api.example.com/raw
+Content-Type: text/plain
+
+first line
+second line
+third line

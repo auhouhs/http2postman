@@ -1,0 +1,5 @@
+### GraphQL query
+POST http://api.example.com/graphql
+X-REQUEST-TYPE: GraphQL
+
+{"query": "{ users { id name } }", "variables": {"limit": 10}}

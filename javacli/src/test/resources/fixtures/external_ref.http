@@ -1,0 +1,10 @@
+### External file ref
+POST http://api.example.com/data
+Content-Type: application/json
+
+< ./payload.json
+
+### Missing external file ref
+POST http://api.example.com/missing
+
+< ./does-not-exist.json

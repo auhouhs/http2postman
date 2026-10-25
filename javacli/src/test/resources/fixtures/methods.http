@@ -1,0 +1,26 @@
+### Bare URL
+http://api.example.com/bare
+
+### GET
+GET http://api.example.com/get
+
+### POST
+POST http://api.example.com/post
+
+### PUT
+PUT http://api.example.com/put
+
+### PATCH
+PATCH http://api.example.com/patch
+
+### DELETE
+DELETE http://api.example.com/delete
+
+### HEAD
+HEAD http://api.example.com/head
+
+### OPTIONS
+OPTIONS http://api.example.com/options
+
+### Unknown method
+TRACE http://api.example.com/trace

@@ -1,0 +1,14 @@
+### Token host
+GET http://{{host}}/users?flag&page=2
+
+### Token scheme
+GET {{scheme}}://api.example.com/items
+
+### Port and fragment
+GET https://api.example.com:8443/path#fragment
+
+### Token obscured base
+GET {{base}}/users/{{id}}
+
+### Relative URL
+GET /relative/path?x=1

@@ -1,0 +1,2 @@
+### REST extension
+GET http://api.example.com/rest-ext

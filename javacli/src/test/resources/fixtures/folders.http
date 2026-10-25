@@ -1,0 +1,14 @@
+## Users
+### List users
+GET http://api.example.com/users
+
+### Create user
+POST http://api.example.com/users
+
+@group Admin
+### Admin panel
+GET http://api.example.com/admin
+
+@group = settings_value
+### Settings
+GET http://api.example.com/settings

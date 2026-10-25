@@ -1,0 +1,10 @@
+WEBSOCKET wss://echo.example.com/socket
+X-Connection: upgrade
+
+### HTTP request after ws block
+GET http://api.example.com/after-ws
+
+### grpc block
+GRPC localhost:8080/hello.Greeter/SayHello
+
+{"name": "world"}

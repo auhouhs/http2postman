@@ -1,0 +1,9 @@
+### Multipart without boundary
+POST http://api.example.com/noboundary
+Content-Type: multipart/form-data
+
+--whatever
+Content-Disposition: form-data; name="x"
+
+value
+--whatever--

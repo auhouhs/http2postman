@@ -1,0 +1,6 @@
+### With response script
+POST http://api.example.com/echo
+
+{"hello": "world"}
+> {% client.test("status is 200", function() { client.assert(response.status === 200); }); %}
+> {% client.log("done"); %}
