@@ -2,8 +2,8 @@
 
 **Convert `.http` files to Postman collections in one command.**
 
-JetBrains HTTP Client and VS Code REST Client requests (`.http` / `.rest`
-files) import cleanly into Postman as a **Collection v2.1** JSON file —
+JetBrains HTTP Client requests (`.http` / `.rest` files) import cleanly into
+Postman as a **Collection v2.1** JSON file —
 requests, folders, variables, scripts, auth, and bodies included.
 
 [![PyPI version](https://badge.fury.io/py/http2postman.svg)](https://pypi.org/project/http2postman/)
@@ -25,7 +25,7 @@ requests, folders, variables, scripts, auth, and bodies included.
 ## Why?
 
 You built your whole API workflow in `.http` files — in IntelliJ, PyCharm,
-Android Studio, or VS Code. Now a teammate uses Postman, or you need to share
+Android Studio. Now a teammate uses Postman, or you need to share
 requests with someone who does. Re-typing every request, header, and body by
 hand is tedious and error-prone.
 
@@ -41,7 +41,7 @@ Then **Postman → Import → postman_collection.json** ([Postman docs](https://
 
 ## 30-second demo
 
-**Before** — `requests.http` (JetBrains / REST Client format):
+**Before** — `requests.http` (JetBrains HTTP Client format):
 
 ```http
 @baseUrl = https://api.example.com
@@ -212,8 +212,6 @@ variables, unresolved dotenv refs, WebSocket/gRPC blocks).
   files under `src/test/http`, `http/`, or anywhere in the project.
   First-party export is still open as [IJPL-150186](https://youtrack.jetbrains.com/projects/IJPL/issues/IJPL-150186) —
   vote there; `http2postman` bridges the gap meanwhile.
-- **VS Code REST Client** — [same syntax](https://marketplace.visualstudio.com/items?itemName=humao.rest-client),
-  including `.rest` files
 - **Bruno?** open an issue — multi-format support is planned
 
 ## Tests

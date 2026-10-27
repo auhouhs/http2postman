@@ -37,7 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Line-oriented parser for JetBrains / VS Code REST Client {@code .http} files.
+ * Line-oriented parser for JetBrains HTTP Client {@code .http} / {@code .rest} files.
  *
  * <p>Invariants inherited from the upstream implementation: sources are only
  * ever opened for reading, and no {@code .http} content is dropped silently.

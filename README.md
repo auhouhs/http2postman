@@ -1,6 +1,6 @@
 # Http2postman
 
-Convert JetBrains HTTP Client (`.http`) and VS Code REST Client (`.rest`) requests into a
+Convert JetBrains HTTP Client requests (`.http` and `.rest` files) into a
 **Postman Collection v2.1** JSON file — from the IDE, the command line, or your own code.
 
 > [!WARNING]

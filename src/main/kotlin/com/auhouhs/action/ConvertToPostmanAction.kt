@@ -48,7 +48,7 @@ class ConvertToPostmanAction : AnAction(
     companion object {
         private val HTTP_EXTENSIONS = setOf("http", "rest")
 
-        /** `true` for JetBrains HTTP Client (`*.http`) and REST Client (`*.rest`) files. */
+        /** `true` for JetBrains HTTP Client files (`*.http` / `*.rest`). */
         fun isHttpSource(fileName: String): Boolean =
             HTTP_EXTENSIONS.contains(fileName.substringAfterLast('.', "").lowercase(Locale.ROOT))
     }
