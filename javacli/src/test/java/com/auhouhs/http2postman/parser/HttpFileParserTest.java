@@ -9,6 +9,7 @@ import com.auhouhs.http2postman.model.BodyPart;
 import com.auhouhs.http2postman.model.Folder;
 import com.auhouhs.http2postman.model.FormField;
 import com.auhouhs.http2postman.model.Header;
+import com.auhouhs.http2postman.model.HttpVersion;
 import com.auhouhs.http2postman.model.Request;
 import com.auhouhs.http2postman.model.Script;
 import com.auhouhs.http2postman.model.SourceDoc;
@@ -108,6 +109,137 @@ class HttpFileParserTest {
             got.add(request.method() + " " + request.url());
         }
         assertEquals(expected, got);
+    }
+
+    // ------------------------------------------------------------------
+    // folded request line (long URLs split over indented continuation lines)
+    // ------------------------------------------------------------------
+
+    @Test
+    void foldedUrlSegmentsJoinedWithoutSeparator() {
+        SourceDoc doc = parseLines(
+                "GET http://example.com:8080",
+                "    /api",
+                "    /html",
+                "    /get",
+                "    ?id=123",
+                "    &value=content");
+        Request r = request(doc, 0);
+        assertEquals("GET", r.method());
+        assertEquals("http://example.com:8080/api/html/get?id=123&value=content", r.url());
+        assertEquals(1, r.sourceLine());
+    }
+
+    @Test
+    void foldedUrlLeavesHeadersBodyAndScriptIndentUntouched() {
+        SourceDoc doc = parseLines(
+                "### scripted",
+                "< {%",
+                "    client.log(\"pre\");",
+                "%}",
+                "POST http://x.test/items?",
+                "    page=2&",
+                "    size=10",
+                "Content-Type: application/json",
+                "",
+                "{",
+                "  \"a\": 1",
+                "}");
+        Request r = request(doc, 0);
+        assertEquals("http://x.test/items?page=2&size=10", r.url());
+        assertEquals("application/json", headers(r).get("Content-Type"));
+        assertEquals("{\n  \"a\": 1\n}", r.body().content());
+        assertEquals(List.of("    client.log(\"pre\");"), r.preScripts().get(0).lines());
+    }
+
+    // ------------------------------------------------------------------
+    // HTTP version pinned after the URL
+    // ------------------------------------------------------------------
+
+    @Test
+    void httpVersionPinStrippedFromUrl() {
+        SourceDoc doc = parseLines(
+                "### http2",
+                "GET https://example.org HTTP/2",
+                "",
+                "### http11",
+                "PATCH https://example.org HTTP/1.1",
+                "",
+                "### prior knowledge",
+                "GET https://example.org HTTP/2 (Prior Knowledge)");
+        assertEquals("https://example.org", request(doc, 0).url());
+        assertEquals(HttpVersion.HTTP_2, request(doc, 0).httpVersion());
+        assertEquals("PATCH", request(doc, 1).method());
+        assertEquals("https://example.org", request(doc, 1).url());
+        assertEquals(HttpVersion.HTTP_1_1, request(doc, 1).httpVersion());
+        assertEquals("https://example.org", request(doc, 2).url());
+        assertEquals(HttpVersion.HTTP_2_PRIOR_KNOWLEDGE, request(doc, 2).httpVersion());
+    }
+
+    @Test
+    void httpVersionAfterFoldedUrl() {
+        SourceDoc doc = parseLines(
+                "GET https://example.org/api",
+                "    ?id=1 HTTP/2");
+        assertEquals("https://example.org/api?id=1", request(doc, 0).url());
+        assertEquals(HttpVersion.HTTP_2, request(doc, 0).httpVersion());
+    }
+
+    @Test
+    void urlWithoutVersionLeavesVersionUnset() {
+        SourceDoc doc = parseLines("GET https://example.org");
+        assertNull(request(doc, 0).httpVersion());
+    }
+
+    // ------------------------------------------------------------------
+    // response file redirects
+    // ------------------------------------------------------------------
+
+    @Test
+    void responseFileDirectiveReportedAndNotTreatedAsScript() {
+        SourceDoc doc = parseLines(
+                "### Force own filename",
+                "GET https://example.org/get",
+                "",
+                "//TIP overrides an existing file",
+                ">>! {{$historyFolder}}/my-forced-response.json");
+        Request r = request(doc, 0);
+        assertEquals("https://example.org/get", r.url());
+        assertNull(r.body());
+        assertEquals(0, r.postScripts().size());
+        UnsupportedItem warning = doc.warnings().get(0);
+        assertEquals(UnsupportedItem.Kind.RESPONSE_FILE, warning.kind());
+        assertEquals(5, warning.sourceLine());
+    }
+
+    @Test
+    void inlineResponseFileTargetStrippedFromUrl() {
+        SourceDoc doc = parseLines("GET https://example.org/get >>! ./out.json");
+        assertEquals("https://example.org/get", request(doc, 0).url());
+        assertEquals(UnsupportedItem.Kind.RESPONSE_FILE, doc.warnings().get(0).kind());
+    }
+
+    @Test
+    void singleArrowStillStartsPostScript() {
+        SourceDoc doc = parseLines(
+                "GET https://example.org/get",
+                "",
+                "> {% client.log('ok'); %}");
+        assertEquals(1, request(doc, 0).postScripts().size());
+        assertTrue(doc.warnings().isEmpty());
+    }
+
+    @Test
+    void responseFileAfterHandlerScriptStillReported() {
+        SourceDoc doc = parseLines(
+                "GET https://example.org/get",
+                "",
+                "> {% client.log('ok'); %}",
+                ">> force.json");
+        assertEquals(1, request(doc, 0).postScripts().size());
+        UnsupportedItem warning = doc.warnings().get(0);
+        assertEquals(UnsupportedItem.Kind.RESPONSE_FILE, warning.kind());
+        assertEquals(4, warning.sourceLine());
     }
 
     // ------------------------------------------------------------------

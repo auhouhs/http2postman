@@ -10,6 +10,7 @@ import com.auhouhs.http2postman.model.DocItem;
 import com.auhouhs.http2postman.model.Folder;
 import com.auhouhs.http2postman.model.FormField;
 import com.auhouhs.http2postman.model.Header;
+import com.auhouhs.http2postman.model.HttpVersion;
 import com.auhouhs.http2postman.model.Request;
 import com.auhouhs.http2postman.model.Script;
 import com.auhouhs.http2postman.model.SourceDoc;
@@ -55,6 +56,11 @@ public final class HttpFileParser {
     private static final Pattern CD_FILENAME = Pattern.compile("filename\\s*=\\s*\"([^\"]*)\"", Pattern.CASE_INSENSITIVE);
     private static final Pattern FORM = Pattern.compile("^[^=&\\s]+=[^=&\\s]*(\\s*&\\s*[^=&\\s]+=[^=&\\s]*)*$");
     private static final Pattern DOTENV_TOKEN = Pattern.compile("\\{\\{\\s*\\$dotenv\\s+([^}\\s]+)\\s*\\}\\}");
+    private static final Pattern HTTP_VERSION =
+            Pattern.compile("\\s+HTTP/(1\\.1|2)(\\s*\\(\\s*Prior\\s+Knowledge\\s*\\))?$",
+                    Pattern.CASE_INSENSITIVE);
+    private static final Pattern RESPONSE_FILE_DIRECTIVE = Pattern.compile("^>>!?(\\s+.*)?$");
+    private static final Pattern INLINE_RESPONSE_FILE = Pattern.compile("\\s+>>!?(\\s+.*)?$");
 
     private static final List<String> TEXT_CONTENT_TYPES = List.of(
             "text/",
@@ -188,6 +194,10 @@ public final class HttpFileParser {
         String name = "";
         String method;
         String url;
+        boolean urlOpen;
+        HttpVersion httpVersion;
+        String responseFile;
+        int responseFileLine;
         final List<Header> headers = new ArrayList<>();
         final int line;
         final List<String> bodyLines = new ArrayList<>();
@@ -286,6 +296,11 @@ public final class HttpFileParser {
                         i++;
                         continue;
                     }
+                    if (RESPONSE_FILE_DIRECTIVE.matcher(stripped).matches()) {
+                        recordResponseFile(pending, stripped, lineNo);
+                        i++;
+                        continue;
+                    }
                     if (pending.method == null) {
                         if (stripped.startsWith("#")) {
                             Matcher m = NAME_DIRECTIVE.matcher(stripped);
@@ -344,8 +359,21 @@ public final class HttpFileParser {
                             pending.method = "GET";
                             pending.url = resolveEnv(stripped, lineNo);
                         }
+                        applyHttpVersion(pending);
+                        applyResponseFileTarget(pending);
+                        pending.urlOpen = true;
                         i++;
                         continue;
+                    }
+                    if (pending.urlOpen) {
+                        if (!stripped.isEmpty() && Character.isWhitespace(raw.charAt(0))) {
+                            pending.url = pending.url + resolveEnv(stripped, lineNo);
+                            applyHttpVersion(pending);
+                            applyResponseFileTarget(pending);
+                            i++;
+                            continue;
+                        }
+                        pending.urlOpen = false;
                     }
                     if (stripped.startsWith("#") || stripped.startsWith("//")) {
                         Matcher m = NAME_DIRECTIVE.matcher(stripped);
@@ -382,6 +410,11 @@ public final class HttpFileParser {
                         pending = startRequest(raw, lineNo);
                         pendingName = null;
                         state = State.HEADERS;
+                        i++;
+                        continue;
+                    }
+                    if (RESPONSE_FILE_DIRECTIVE.matcher(stripped).matches()) {
+                        recordResponseFile(pending, stripped, lineNo);
                         i++;
                         continue;
                     }
@@ -449,6 +482,11 @@ public final class HttpFileParser {
                     pending = startRequest(raw, lineNo);
                     pendingName = null;
                     state = State.HEADERS;
+                    i++;
+                    continue;
+                }
+                if (RESPONSE_FILE_DIRECTIVE.matcher(stripped).matches()) {
+                    reportResponseFile(stripped, lineNo);
                     i++;
                     continue;
                 }
@@ -527,6 +565,52 @@ public final class HttpFileParser {
             Folder folder = new Folder(name);
             doc.addItem(folder);
             currentFolder = folder;
+        }
+
+        /** Strip a trailing {@code HTTP/2} / {@code HTTP/1.1} pin from the request URL. */
+        private void applyHttpVersion(PendingRequest request) {
+            if (request.url == null) {
+                return;
+            }
+            Matcher matcher = HTTP_VERSION.matcher(request.url);
+            if (!matcher.find()) {
+                return;
+            }
+            request.httpVersion = "2".equals(matcher.group(1))
+                    ? (matcher.group(2) != null ? HttpVersion.HTTP_2_PRIOR_KNOWLEDGE : HttpVersion.HTTP_2)
+                    : HttpVersion.HTTP_1_1;
+            request.url = request.url.substring(0, matcher.start());
+        }
+
+        /** Strip a trailing {@code >> file} / {@code >>! file} redirect target from the request URL. */
+        private void applyResponseFileTarget(PendingRequest request) {
+            if (request.url == null) {
+                return;
+            }
+            Matcher matcher = INLINE_RESPONSE_FILE.matcher(request.url);
+            if (!matcher.find()) {
+                return;
+            }
+            request.responseFile = matcher.group().strip();
+            request.responseFileLine = request.line;
+            request.url = request.url.substring(0, matcher.start());
+        }
+
+        /** Remember a standalone {@code >> file} redirect: Postman cannot save responses to disk. */
+        private void recordResponseFile(PendingRequest request, String directive, int lineNo) {
+            if (request == null) {
+                return;
+            }
+            request.responseFile = directive.strip();
+            request.responseFileLine = lineNo;
+        }
+
+        private void reportResponseFile(String directive, int lineNo) {
+            doc.addWarning(new UnsupportedItem(
+                    UnsupportedItem.Kind.RESPONSE_FILE,
+                    "response redirect '" + directive.strip() + "' has no Postman equivalent",
+                    source,
+                    lineNo));
         }
 
         /** Substitute {@code {{$dotenv KEY}}} tokens, reporting keys the env file does not define. */
@@ -701,9 +785,12 @@ public final class HttpFileParser {
                 return null;
             }
             String contentType = headerValue(request.headers, "content-type");
+            if (request.responseFile != null) {
+                reportResponseFile(request.responseFile, request.responseFileLine);
+            }
             Body body = buildBody(request, contentType);
             Request built = new Request(request.name, request.method, request.url, request.headers, body,
-                    source, request.line);
+                    request.httpVersion, source, request.line);
             for (Script script : request.preScripts) {
                 built.addPreScript(script);
             }

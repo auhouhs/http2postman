@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Converter tests: URL building, headers, bodies, names, variables, events, auth. */
@@ -425,6 +426,33 @@ class PostmanConverterTest {
         JsonNode header = request(collection, 0).get("header");
         assertEquals("{\"key\":\"X-Corr\",\"value\":\"{{$guid}}\"}", header.get(0).toString());
         assertEquals("{\"key\":\"X-Other\",\"value\":\"$custom\"}", header.get(1).toString());
+    }
+
+    // ------------------------------------------------------------------
+    // pinned HTTP version
+    // ------------------------------------------------------------------
+
+    @Test
+    void pinnedHttpVersionBecomesProtocolProfileBehavior() {
+        JsonNode collection = convert(parse(
+                "### h2",
+                "GET https://example.org HTTP/2",
+                "### h11",
+                "GET https://example.org HTTP/1.1",
+                "### prior knowledge",
+                "GET https://example.org HTTP/2 (Prior Knowledge)",
+                "### negotiated",
+                "GET https://example.org"));
+        assertEquals("http2", protocolVersion(collection, 0));
+        assertEquals("http1", protocolVersion(collection, 1));
+        assertEquals("http2", protocolVersion(collection, 2));
+        assertNull(item(collection, 3).get("protocolProfileBehavior"));
+        assertEquals("https://example.org", url(collection, 0).get("raw").asText());
+    }
+
+    private static String protocolVersion(JsonNode collection, int index) {
+        JsonNode behavior = item(collection, index).get("protocolProfileBehavior");
+        return behavior == null ? null : behavior.get("protocolVersion").asText();
     }
 
     // ------------------------------------------------------------------

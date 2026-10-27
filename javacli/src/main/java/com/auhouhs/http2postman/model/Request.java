@@ -14,6 +14,7 @@ public final class Request implements DocItem {
     private final String name;
     private final String method;
     private final String url;
+    private final HttpVersion httpVersion;
     private final List<Header> headers;
     private final Body body;
     private final String sourceFile;
@@ -23,9 +24,15 @@ public final class Request implements DocItem {
 
     public Request(String name, String method, String url, List<Header> headers, Body body,
                    String sourceFile, int sourceLine) {
+        this(name, method, url, headers, body, null, sourceFile, sourceLine);
+    }
+
+    public Request(String name, String method, String url, List<Header> headers, Body body,
+                   HttpVersion httpVersion, String sourceFile, int sourceLine) {
         this.name = name == null ? "" : name;
         this.method = method;
         this.url = url;
+        this.httpVersion = httpVersion;
         this.headers = List.copyOf(headers);
         this.body = body;
         this.sourceFile = sourceFile;
@@ -42,6 +49,11 @@ public final class Request implements DocItem {
 
     public String url() {
         return url;
+    }
+
+    /** HTTP version pinned on the request line, {@code null} when the file left it to negotiation. */
+    public HttpVersion httpVersion() {
+        return httpVersion;
     }
 
     public List<Header> headers() {

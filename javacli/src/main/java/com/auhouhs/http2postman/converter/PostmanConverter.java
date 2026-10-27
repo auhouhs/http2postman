@@ -24,6 +24,7 @@ import com.auhouhs.http2postman.postman.PostmanInfo;
 import com.auhouhs.http2postman.postman.PostmanItem;
 import com.auhouhs.http2postman.postman.PostmanJson;
 import com.auhouhs.http2postman.postman.PostmanKeyValue;
+import com.auhouhs.http2postman.postman.PostmanProtocolProfileBehavior;
 import com.auhouhs.http2postman.postman.PostmanRawOptions;
 import com.auhouhs.http2postman.postman.PostmanRequest;
 import com.auhouhs.http2postman.postman.PostmanScript;
@@ -225,8 +226,11 @@ public final class PostmanConverter {
         }
         PostmanBody body = request.body() != null ? convertBody(request, warnings) : null;
         List<PostmanEvent> events = convertScripts(request);
+        PostmanProtocolProfileBehavior profile = request.httpVersion() == null
+                ? null
+                : new PostmanProtocolProfileBehavior(request.httpVersion().postmanValue());
 
-        return PostmanItem.request(name, new PostmanRequest(request.method(), headers, url, body), auth,
+        return PostmanItem.request(name, profile, new PostmanRequest(request.method(), headers, url, body), auth,
                 events.isEmpty() ? null : events);
     }
 

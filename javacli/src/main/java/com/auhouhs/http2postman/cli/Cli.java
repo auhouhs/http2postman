@@ -443,6 +443,7 @@ public final class Cli {
                 case "grpc_request" -> lines.add("grpc requests at " + locations);
                 case "dynamic_variable" -> lines.add("unmapped dynamic vars: " + locations);
                 case "dotenv" -> lines.add("unresolved dotenv refs at " + locations);
+                case "response_file" -> lines.add("response-file redirects at " + locations);
                 default -> lines.add(entry.getKey() + ": " + locations);
             }
         }

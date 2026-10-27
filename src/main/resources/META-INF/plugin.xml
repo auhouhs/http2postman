@@ -8,13 +8,25 @@
     <name>Http2postman</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor url="https://www.yourcompany.com">YourCompany</vendor>
+    <vendor url="https://auhouhs.com">Auhouhs</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Enter short description for your plugin here.<br>
-        <em>most HTML tags may be used</em>
+        <b>Beta version — not fully tested.</b><br>
+        This plugin is still in beta. Its code was generated with a language model and has only been
+        partially tested; obvious bugs found during review were fixed. Bugs, edge-case failures and
+        unexpected output are possible, so please review the generated collection and keep backups
+        of your request files before relying on it.<br>
+        <br>
+        The <code>.http</code> parsing and collection-building logic is a Java port of
+        <a href="https://github.com/salitaba/http2postman">salitaba/http2postman</a> (MIT), so it
+        follows the upstream Python implementation.<br>
+        <br>
+        Converts JetBrains HTTP Client (<code>.http</code>) and REST Client (<code>.rest</code>) files
+        into a Postman Collection v2.1 JSON file.<br>
+        Right-click a request file or folder in the Project view and choose
+        <b>Convert to Postman Format File</b>.
         ]]></description>
 
     <!-- Product and plugin compatibility requirements.
@@ -28,6 +40,16 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="MyToolWindow" factoryClass="com.auhouhs.MyToolWindowFactory"
                     icon="AllIcons.Toolwindows.ToolWindowPalette"/>
+        <notificationGroup id="Http2postman" displayType="BALLOON"/>
     </extensions>
+
+    <actions>
+        <action id="Http2postman.ConvertToPostman"
+                class="com.auhouhs.action.ConvertToPostmanAction"
+                icon="AllIcons.Actions.Upload">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+    </actions>
 
 </idea-plugin>

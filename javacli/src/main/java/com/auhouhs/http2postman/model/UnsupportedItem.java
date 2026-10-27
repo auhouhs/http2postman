@@ -14,7 +14,8 @@ public record UnsupportedItem(Kind kind, String message, String sourceFile, int 
         DOTENV("dotenv"),
         MULTIPART_NO_BOUNDARY("multipart_no_boundary"),
         MULTIPART_UNTERMINATED("multipart_unterminated"),
-        EXTERNAL_REF_UNREADABLE("external_ref_unreadable");
+        EXTERNAL_REF_UNREADABLE("external_ref_unreadable"),
+        RESPONSE_FILE("response_file");
 
         private final String wireName;
 

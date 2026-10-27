@@ -15,18 +15,20 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record PostmanItem(
         String name,
+        PostmanProtocolProfileBehavior protocolProfileBehavior,
         PostmanRequest request,
         List<PostmanItem> item,
         PostmanAuth auth,
         List<PostmanEvent> event) {
 
     public static PostmanItem folder(String name, List<PostmanItem> children) {
-        return new PostmanItem(name, null, children, null, null);
+        return new PostmanItem(name, null, null, children, null, null);
     }
 
-    public static PostmanItem request(String name, PostmanRequest request, PostmanAuth auth,
+    public static PostmanItem request(String name, PostmanProtocolProfileBehavior protocolProfileBehavior,
+                                      PostmanRequest request, PostmanAuth auth,
                                       List<PostmanEvent> events) {
-        return new PostmanItem(name, request, null, auth, events);
+        return new PostmanItem(name, protocolProfileBehavior, request, null, auth, events);
     }
 
     public boolean isFolder() {

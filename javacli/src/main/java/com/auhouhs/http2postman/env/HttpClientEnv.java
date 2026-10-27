@@ -12,10 +12,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 
 /** Reader for JetBrains {@code http-client.env.json} / {@code http-client.private.env.json}. */
@@ -74,6 +76,30 @@ public final class HttpClientEnv {
             result.put(entry.getKey(), coerceValue(entry.getValue()));
         }
         return result;
+    }
+
+    /**
+     * Environment names declared in {@code http-client.env.json} and
+     * {@code http-client.private.env.json} in {@code directory}, sorted.
+     *
+     * @throws EnvFileException when an existing env file cannot be parsed
+     */
+    public static List<String> names(Path directory) throws EnvFileException {
+        Set<String> names = new TreeSet<>();
+        for (String filename : List.of(ENV_FILE, PRIVATE_ENV_FILE)) {
+            JsonNode envs = readEnvFile(directory.resolve(filename));
+            if (envs == null) {
+                continue;
+            }
+            Iterator<Map.Entry<String, JsonNode>> fields = envs.fields();
+            while (fields.hasNext()) {
+                Map.Entry<String, JsonNode> entry = fields.next();
+                if (entry.getValue().isObject()) {
+                    names.add(entry.getKey());
+                }
+            }
+        }
+        return new ArrayList<>(names);
     }
 
     private static String availableNames(Map<String, Map<String, JsonNode>> merged) {
